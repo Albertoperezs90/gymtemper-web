@@ -8,22 +8,21 @@ const SPANISH_COUNTRIES = new Set([
 let lang = 'en';
 
 async function initLang() {
-  // Cached from a previous visit
-  const cached = localStorage.getItem('gymtemper-lang');
+  // 1. Browser language preference — always check fresh, it's instant
+  const browserLangs = navigator.languages?.length ? navigator.languages : [navigator.language || 'en'];
+  if (browserLangs.some((l) => l.toLowerCase().startsWith('es'))) {
+    lang = 'es';
+    return;
+  }
+
+  // 2. IP geolocation — cached under a separate key so browser-lang changes
+  //    are never blocked by a stale cached value
+  const cached = localStorage.getItem('gymtemper-lang-geo');
   if (cached === 'es' || cached === 'en') {
     lang = cached;
     return;
   }
 
-  // Browser language preference list
-  const browserLangs = navigator.languages?.length ? navigator.languages : [navigator.language || 'en'];
-  if (browserLangs.some((l) => l.toLowerCase().startsWith('es'))) {
-    lang = 'es';
-    localStorage.setItem('gymtemper-lang', 'es');
-    return;
-  }
-
-  // IP geolocation fallback — what sites like Fever use
   try {
     const res = await fetch('https://ipapi.co/country/');
     if (res.ok) {
@@ -33,7 +32,7 @@ async function initLang() {
   } catch {
     // Keep default 'en' on network error
   }
-  localStorage.setItem('gymtemper-lang', lang);
+  localStorage.setItem('gymtemper-lang-geo', lang);
 }
 
 // Kick off detection as early as possible so it may resolve before DOMContentLoaded
