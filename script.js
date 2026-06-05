@@ -1,65 +1,13 @@
-// ===== Language detection =====
-// Priority: 1) cached from previous visit, 2) browser language prefs, 3) IP geolocation
-const SPANISH_COUNTRIES = new Set([
-  'ES','MX','AR','CO','CL','PE','VE','EC','BO','PY','UY',
-  'GT','HN','SV','NI','CR','PA','CU','DO','PR','GQ'
-]);
+const lang = (navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
 
-// Timezones belonging to Spanish-speaking countries (no network needed)
-const SPANISH_TZ = /^(Europe\/(Madrid|Ceuta)|Atlantic\/Canary|Africa\/Malabo|Pacific\/Easter|America\/(Mexico_City|Merida|Monterrey|Matamoros|Mazatlan|Chihuahua|Ojinaga|Hermosillo|Tijuana|Bahia_Banderas|Cancun|Bogota|Lima|Santiago|Caracas|La_Paz|Asuncion|Montevideo|Guatemala|Tegucigalpa|El_Salvador|Managua|Costa_Rica|Panama|Havana|Santo_Domingo|Puerto_Rico|Argentina.*|Cordoba))$/;
-
-let lang = 'en';
-
-async function initLang() {
-  // 1. Browser language preference — instant, always fresh
-  //    Include navigator.language explicitly so it isn't skipped when
-  //    navigator.languages exists but doesn't contain Spanish
-  const browserLangs = [navigator.language, ...(navigator.languages ?? [])].filter(Boolean);
-  if (browserLangs.some((l) => l.toLowerCase().startsWith('es'))) {
-    lang = 'es';
-    return;
-  }
-
-  // 2. Timezone — instant, no network, can't be blocked by extensions
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-  if (SPANISH_TZ.test(tz)) {
-    lang = 'es';
-    return;
-  }
-
-  // 3. IP geolocation via Cloudflare trace — rarely blocked, no third-party tracker
-  const cached = localStorage.getItem('gymtemper-lang-geo');
-  if (cached === 'es' || cached === 'en') {
-    lang = cached;
-    return;
-  }
-
-  try {
-    const res = await fetch('https://1.1.1.1/cdn-cgi/trace');
-    if (res.ok) {
-      const country = (await res.text()).match(/loc=([A-Z]{2})/)?.[1] ?? '';
-      lang = SPANISH_COUNTRIES.has(country) ? 'es' : 'en';
-    }
-  } catch {
-    // Keep default 'en'
-  }
-  localStorage.setItem('gymtemper-lang-geo', lang);
-}
-
-// Kick off detection as early as possible so it may resolve before DOMContentLoaded
-const langReady = initLang();
-
-// ===== Theme helpers =====
+// ===== Theme =====
 function getSavedTheme() {
   const saved = localStorage.getItem('gymtemper-theme');
   return saved === 'light' || saved === 'dark' ? saved : null;
 }
 
-function getSystemTheme() {
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-}
-
-let currentTheme = getSavedTheme() || getSystemTheme();
+let currentTheme = getSavedTheme() ||
+  (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
 
 function applyTheme(theme, save = true) {
   currentTheme = theme;
@@ -70,43 +18,115 @@ function applyTheme(theme, save = true) {
 
 function updateScreenshots() {
   const folder = currentTheme === 'light' ? 'light' : 'dark';
-
   document.querySelectorAll('.carousel-slide img[data-screen]').forEach((img) => {
-    const screen = img.dataset.screen;
-    img.src = `assets/screenshots/${lang}/${folder}/${screen}.png`;
+    img.src = `assets/screenshots/${lang}/${folder}/${img.dataset.screen}.png`;
   });
-
   const heroGraphic = document.getElementById('hero-graphic');
-  if (heroGraphic) {
-    heroGraphic.src = `assets/feature-graphic/play_store_feature_graphic_${lang}.png`;
-  }
+  if (heroGraphic) heroGraphic.src = `assets/feature-graphic/play_store_feature_graphic_${lang}.png`;
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  // Wait for lang detection before setting screenshot paths.
-  // For cached/browser-detected users this is instant;
-  // for first-time IP-geolocated users it waits for the API response.
-  await langReady;
+// ===== Translations =====
+function t(selector, value, html = false) {
+  document.querySelectorAll(selector).forEach((el) => {
+    if (html) el.innerHTML = value;
+    else el.textContent = value;
+  });
+}
 
+function translatePage() {
+  if (lang !== 'es') return;
+
+  document.documentElement.lang = 'es';
+
+  // Navbar
+  t('.navbar-cta', 'Descargar gratis');
+
+  // Hero
+  t('.hero-eyebrow', 'Aplicación de entreno para Android');
+  t('.hero-headline', 'Tus entrenos.<br>Tu móvil.<br>Tus reglas.', true);
+  t('.hero-sub',
+    '<strong>Entrena inteligente. Sin cuenta. Sin nube.</strong><br>' +
+    'Registra series con RIR, temporizador automático y gráficas de fuerza — todo 100% sin conexión.',
+    true);
+  t('.hero-micro', 'Gratis · Sin anuncios · Android 8.0+');
+
+  // Features section
+  t('.features .section-header h2',
+    'Todo lo que necesitas. <span class="accent">Nada más.</span>', true);
+  t('.features .section-header p', 'Para quien entrena con cabeza y sin florituras.');
+
+  const featureTitles = [
+    'Registro de series',
+    'Temporizador automático',
+    'Plantillas de rutinas',
+    'Historial completo',
+    'Gráficas de progresión 1RM',
+    '100% sin conexión',
+  ];
+  const featureDescs = [
+    'Peso, reps y RIR — con tu último rendimiento visible bajo cada campo.',
+    'Se activa al terminar la serie. Funciona en segundo plano y en la pantalla de bloqueo.',
+    'Guarda cualquier entreno como plantilla. Empieza tu siguiente sesión con un toque.',
+    'Cada sesión guardada con duración, volumen y desglose completo de series.',
+    'Sigue tu máximo estimado en el tiempo con la fórmula de Epley.',
+    'Sin cuenta. Sin nube. Sin anuncios. Tus datos no salen de tu dispositivo.',
+  ];
+  document.querySelectorAll('.feature-card').forEach((card, i) => {
+    if (featureTitles[i]) card.querySelector('h3').textContent = featureTitles[i];
+    if (featureDescs[i])  card.querySelector('p').textContent  = featureDescs[i];
+  });
+
+  // Screenshots section
+  t('.screenshots-section .section-header h2',
+    'Véala en <span class="accent">acción</span>', true);
+  t('.screenshots-section .section-header p', 'Limpia, enfocada y sin distracciones — por diseño.');
+
+  const captions = ['Panel principal', 'Elige una rutina', 'Registra tus series',
+                    'Temporizador de descanso', 'Historial de entrenos', 'Progresión de fuerza'];
+  document.querySelectorAll('.carousel-caption').forEach((el, i) => {
+    if (captions[i]) el.textContent = captions[i];
+  });
+
+  // Privacy
+  t('.privacy-inner h2', 'Tus datos nunca salen de tu móvil.');
+  const bullets = ['Sin cuenta — ahora ni nunca.',
+                   'Sin sincronización en la nube, ni datos compartidos, ni funciones sociales.',
+                   'Solo informes de errores anónimos (desactivable en Ajustes de Android).'];
+  document.querySelectorAll('.privacy-bullets li').forEach((el, i) => {
+    if (bullets[i]) el.textContent = bullets[i];
+  });
+  t('.privacy-inner > a', 'Leer la política de privacidad');
+
+  // CTA banner
+  t('.cta-banner h2', '¿Listo para entrenar <span class="accent">mejor?</span>', true);
+  t('.cta-banner > p', 'Descarga gratuita. Sin cuenta. Sin suscripción. Solo tú y tus pesas.');
+
+  // Footer
+  t('.footer-links a:first-child', 'Política de privacidad');
+  t('.footer-copy', '© 2026 Alberto Pérez Simón. Todos los derechos reservados.');
+  t('.footer-disclaimer',
+    'GymTemper no está afiliado a Google LLC. Android y Google Play son marcas registradas de Google LLC.');
+}
+
+// ===== Boot =====
+document.addEventListener('DOMContentLoaded', () => {
+  translatePage();
   applyTheme(currentTheme, false);
-
   lucide.createIcons();
 
   // Theme toggle
-  const toggleBtn = document.getElementById('theme-toggle');
-  toggleBtn?.addEventListener('click', () => {
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
     applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
   });
 
-  // Respect OS theme changes when user hasn't manually overridden
   window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
     if (!getSavedTheme()) applyTheme(e.matches ? 'light' : 'dark', false);
   });
 
   // ===== Carousel =====
-  const track = document.querySelector('.carousel-track');
-  const slides = Array.from(track ? track.children : []);
-  const dots = Array.from(document.querySelectorAll('.carousel-dot'));
+  const track   = document.querySelector('.carousel-track');
+  const slides  = Array.from(track ? track.children : []);
+  const dots    = Array.from(document.querySelectorAll('.carousel-dot'));
   const prevBtn = document.querySelector('.carousel-btn.prev');
   const nextBtn = document.querySelector('.carousel-btn.next');
 
@@ -153,22 +173,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       currentIndex = 0;
       updateDots(0);
       track.scrollLeft = 0;
-      slides.forEach((slide) => observer.observe(slide));
+      slides.forEach((s) => observer.observe(s));
     }
   }
 
   if (desktopMq.matches) {
     observer.disconnect();
   } else {
-    slides.forEach((slide) => observer.observe(slide));
+    slides.forEach((s) => observer.observe(s));
   }
 
   desktopMq.addEventListener('change', (e) => onBreakpoint(e.matches));
-
   prevBtn?.addEventListener('click', () => goTo(currentIndex - 1));
   nextBtn?.addEventListener('click', () => goTo(currentIndex + 1));
   dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
-
   updateDots(0);
 
   // ===== Lightbox =====
@@ -203,20 +221,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'ArrowRight') lightboxNav(1);
   });
 
-  // ===== Scroll-in fade animation =====
+  // ===== Scroll-in fade =====
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const fadeEls = document.querySelectorAll('.fade-in');
     const fadeObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            fadeObserver.unobserve(entry.target);
-          }
-        });
-      },
+      (entries) => entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          fadeObserver.unobserve(entry.target);
+        }
+      }),
       { threshold: 0.15 }
     );
-    fadeEls.forEach((el) => fadeObserver.observe(el));
+    document.querySelectorAll('.fade-in').forEach((el) => fadeObserver.observe(el));
   }
 });
