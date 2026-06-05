@@ -5,18 +5,27 @@ const SPANISH_COUNTRIES = new Set([
   'GT','HN','SV','NI','CR','PA','CU','DO','PR','GQ'
 ]);
 
+// Timezones belonging to Spanish-speaking countries (no network needed)
+const SPANISH_TZ = /^(Europe\/(Madrid|Ceuta)|Atlantic\/Canary|Africa\/Malabo|Pacific\/Easter|America\/(Mexico_City|Merida|Monterrey|Matamoros|Mazatlan|Chihuahua|Ojinaga|Hermosillo|Tijuana|Bahia_Banderas|Cancun|Bogota|Lima|Santiago|Caracas|La_Paz|Asuncion|Montevideo|Guatemala|Tegucigalpa|El_Salvador|Managua|Costa_Rica|Panama|Havana|Santo_Domingo|Puerto_Rico|Argentina.*|Cordoba))$/;
+
 let lang = 'en';
 
 async function initLang() {
-  // 1. Browser language preference — always check fresh, it's instant
+  // 1. Browser language preference — instant, always fresh
   const browserLangs = navigator.languages?.length ? navigator.languages : [navigator.language || 'en'];
   if (browserLangs.some((l) => l.toLowerCase().startsWith('es'))) {
     lang = 'es';
     return;
   }
 
-  // 2. IP geolocation — cached under a separate key so browser-lang changes
-  //    are never blocked by a stale cached value
+  // 2. Timezone — instant, no network, can't be blocked by extensions
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  if (SPANISH_TZ.test(tz)) {
+    lang = 'es';
+    return;
+  }
+
+  // 3. IP geolocation via Cloudflare trace — rarely blocked, no third-party tracker
   const cached = localStorage.getItem('gymtemper-lang-geo');
   if (cached === 'es' || cached === 'en') {
     lang = cached;
@@ -24,13 +33,13 @@ async function initLang() {
   }
 
   try {
-    const res = await fetch('https://ipapi.co/country/');
+    const res = await fetch('https://1.1.1.1/cdn-cgi/trace');
     if (res.ok) {
-      const country = (await res.text()).trim().toUpperCase();
+      const country = (await res.text()).match(/loc=([A-Z]{2})/)?.[1] ?? '';
       lang = SPANISH_COUNTRIES.has(country) ? 'es' : 'en';
     }
   } catch {
-    // Keep default 'en' on network error
+    // Keep default 'en'
   }
   localStorage.setItem('gymtemper-lang-geo', lang);
 }
