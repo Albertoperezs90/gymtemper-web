@@ -38,6 +38,11 @@ function translatePage() {
 
   document.documentElement.lang = 'es';
 
+  // Title & meta description
+  document.title = 'GymTemper — Registro de entrenos offline para Android | Sin cuenta';
+  document.querySelector('meta[name="description"]')
+    ?.setAttribute('content', 'GymTemper es un registro de entrenos gratuito para Android que funciona 100% sin conexión. Registra series con RIR, temporizador de descanso automático, plantillas de rutinas y gráficas de 1RM. Sin cuenta. Sin nube. Sin anuncios.');
+
   // Navbar
   t('.navbar-cta', 'Descargar gratis');
 
