@@ -1,10 +1,45 @@
-// Detect locale: Spanish if *any* of the browser's preferred languages is es-*
-const lang = (() => {
-  const langs = navigator.languages?.length ? navigator.languages : [navigator.language || 'en'];
-  return langs.some((l) => l.toLowerCase().startsWith('es')) ? 'es' : 'en';
-})();
+// ===== Language detection =====
+// Priority: 1) cached from previous visit, 2) browser language prefs, 3) IP geolocation
+const SPANISH_COUNTRIES = new Set([
+  'ES','MX','AR','CO','CL','PE','VE','EC','BO','PY','UY',
+  'GT','HN','SV','NI','CR','PA','CU','DO','PR','GQ'
+]);
 
-// Theme helpers
+let lang = 'en';
+
+async function initLang() {
+  // Cached from a previous visit
+  const cached = localStorage.getItem('gymtemper-lang');
+  if (cached === 'es' || cached === 'en') {
+    lang = cached;
+    return;
+  }
+
+  // Browser language preference list
+  const browserLangs = navigator.languages?.length ? navigator.languages : [navigator.language || 'en'];
+  if (browserLangs.some((l) => l.toLowerCase().startsWith('es'))) {
+    lang = 'es';
+    localStorage.setItem('gymtemper-lang', 'es');
+    return;
+  }
+
+  // IP geolocation fallback — what sites like Fever use
+  try {
+    const res = await fetch('https://ipapi.co/country/');
+    if (res.ok) {
+      const country = (await res.text()).trim().toUpperCase();
+      lang = SPANISH_COUNTRIES.has(country) ? 'es' : 'en';
+    }
+  } catch {
+    // Keep default 'en' on network error
+  }
+  localStorage.setItem('gymtemper-lang', lang);
+}
+
+// Kick off detection as early as possible so it may resolve before DOMContentLoaded
+const langReady = initLang();
+
+// ===== Theme helpers =====
 function getSavedTheme() {
   const saved = localStorage.getItem('gymtemper-theme');
   return saved === 'light' || saved === 'dark' ? saved : null;
@@ -37,12 +72,14 @@ function updateScreenshots() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Apply theme and locale-appropriate images immediately
-  // (theme attribute already set by inline head script; this syncs screenshots)
+document.addEventListener('DOMContentLoaded', async () => {
+  // Wait for lang detection before setting screenshot paths.
+  // For cached/browser-detected users this is instant;
+  // for first-time IP-geolocated users it waits for the API response.
+  await langReady;
+
   applyTheme(currentTheme, false);
 
-  // Init Lucide icons
   lucide.createIcons();
 
   // Theme toggle
@@ -51,11 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
   });
 
-  // Respect system theme changes when user hasn't manually overridden
+  // Respect OS theme changes when user hasn't manually overridden
   window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
-    if (!getSavedTheme()) {
-      applyTheme(e.matches ? 'light' : 'dark', false);
-    }
+    if (!getSavedTheme()) applyTheme(e.matches ? 'light' : 'dark', false);
   });
 
   // ===== Carousel =====
@@ -74,13 +109,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function goTo(index) {
     currentIndex = Math.max(0, Math.min(index, slides.length - 1));
     const slide = slides[currentIndex];
-    // Calculate the scroll offset that centers the target slide in the track
     const scrollLeft = slide.offsetLeft - (track.clientWidth - slide.offsetWidth) / 2;
     programmaticScroll = true;
     clearTimeout(programmaticScrollTimer);
     track.scrollTo({ left: scrollLeft, behavior: 'smooth' });
     updateDots(currentIndex);
-    // Re-enable swipe syncing after the animation settles
     programmaticScrollTimer = setTimeout(() => { programmaticScroll = false; }, 600);
   }
 
@@ -88,17 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
     dots.forEach((d, i) => d.classList.toggle('active', i === index));
   }
 
-  // Sync dots when user swipes (suppressed during programmatic scrolls)
   const observer = new IntersectionObserver(
     (entries) => {
       if (programmaticScroll) return;
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const i = slides.indexOf(entry.target);
-          if (i !== -1) {
-            currentIndex = i;
-            updateDots(i);
-          }
+          if (i !== -1) { currentIndex = i; updateDots(i); }
         }
       });
     },
@@ -109,10 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function onBreakpoint(isDesktop) {
     if (isDesktop) {
-      // Grid layout: observer would fire for all visible slides and corrupt state
       observer.disconnect();
     } else {
-      // Back to carousel: reset to first slide and reconnect
       currentIndex = 0;
       updateDots(0);
       track.scrollLeft = 0;
@@ -120,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Init
   if (desktopMq.matches) {
     observer.disconnect();
   } else {
@@ -136,40 +162,32 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDots(0);
 
   // ===== Lightbox =====
-  const lightbox     = document.getElementById('lightbox');
-  const lightboxImg  = document.getElementById('lightbox-img');
-  const lightboxPrev = document.getElementById('lightbox-prev');
-  const lightboxNext = document.getElementById('lightbox-next');
+  const lightbox      = document.getElementById('lightbox');
+  const lightboxImg   = document.getElementById('lightbox-img');
+  const lightboxPrev  = document.getElementById('lightbox-prev');
+  const lightboxNext  = document.getElementById('lightbox-next');
   const lightboxClose = document.getElementById('lightbox-close');
-  const slideImgs = slides.map((s) => s.querySelector('img'));
-  let lightboxIndex = 0;
+  const slideImgs     = slides.map((s) => s.querySelector('img'));
+  let lightboxIndex   = 0;
 
   function openLightbox(index) {
     lightboxIndex = index;
-    const img = slideImgs[lightboxIndex];
-    lightboxImg.src = img.src;
-    lightboxImg.alt = img.alt;
+    lightboxImg.src = slideImgs[lightboxIndex].src;
+    lightboxImg.alt = slideImgs[lightboxIndex].alt;
     lightbox.showModal();
   }
 
   function lightboxNav(dir) {
     lightboxIndex = (lightboxIndex + dir + slideImgs.length) % slideImgs.length;
-    const img = slideImgs[lightboxIndex];
-    lightboxImg.src = img.src;
-    lightboxImg.alt = img.alt;
+    lightboxImg.src = slideImgs[lightboxIndex].src;
+    lightboxImg.alt = slideImgs[lightboxIndex].alt;
   }
 
   slideImgs.forEach((img, i) => img.addEventListener('click', () => openLightbox(i)));
   lightboxClose?.addEventListener('click', () => lightbox.close());
-  lightboxPrev?.addEventListener('click', () => lightboxNav(-1));
-  lightboxNext?.addEventListener('click', () => lightboxNav(1));
-
-  // Close on backdrop click (click lands directly on <dialog>, not its children)
-  lightbox.addEventListener('click', (e) => {
-    if (e.target === lightbox) lightbox.close();
-  });
-
-  // Keyboard navigation inside lightbox
+  lightboxPrev?.addEventListener('click',  () => lightboxNav(-1));
+  lightboxNext?.addEventListener('click',  () => lightboxNav(1));
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.close(); });
   lightbox.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft')  lightboxNav(-1);
     if (e.key === 'ArrowRight') lightboxNav(1);
