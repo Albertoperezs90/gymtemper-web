@@ -38,10 +38,36 @@ function translatePage() {
 
   document.documentElement.lang = 'es';
 
-  // Title & meta description
+  // Title & primary meta
   document.title = 'GymTemper — Registro de entrenos offline para Android | Sin cuenta';
-  document.querySelector('meta[name="description"]')
-    ?.setAttribute('content', 'GymTemper es un registro de entrenos gratuito para Android que funciona 100% sin conexión. Registra series con RIR, temporizador de descanso automático, plantillas de rutinas y gráficas de 1RM. Sin cuenta. Sin nube. Sin anuncios.');
+
+  const setMeta = (sel, attr, val) => document.querySelector(sel)?.setAttribute(attr, val);
+
+  setMeta('meta[name="description"]', 'content',
+    'GymTemper es un registro de entrenos gratuito para Android que funciona 100% sin conexión. ' +
+    'Registra series con RIR, temporizador de descanso automático, plantillas de rutinas y gráficas de 1RM. ' +
+    'Sin cuenta. Sin nube. Sin anuncios.');
+
+  setMeta('meta[name="keywords"]', 'content',
+    'registro entrenos android sin internet, gym tracker sin cuenta, app pesas android gratis, ' +
+    'aplicación entreno offline android, app fuerza sin suscripción, gym app android sin conexión');
+
+  // Open Graph
+  setMeta('meta[property="og:title"]', 'content',
+    'GymTemper — Registro de entrenos offline para Android');
+  setMeta('meta[property="og:description"]', 'content',
+    'Registra series, temporizador de descanso y gráficas de fuerza. 100% sin conexión. Sin cuenta. Sin nube. Sin anuncios. Gratis en Google Play.');
+  setMeta('meta[property="og:image"]', 'content',
+    'https://albertoperezs90.github.io/gymtemper-web/assets/feature-graphic/play_store_feature_graphic_es.png');
+  setMeta('meta[property="og:locale"]', 'content', 'es_ES');
+
+  // Twitter Card
+  setMeta('meta[name="twitter:title"]', 'content',
+    'GymTemper — Registro de entrenos offline para Android');
+  setMeta('meta[name="twitter:description"]', 'content',
+    'Registra series, temporizador de descanso y gráficas de fuerza. 100% sin conexión. Sin cuenta. Sin nube. Sin anuncios.');
+  setMeta('meta[name="twitter:image"]', 'content',
+    'https://albertoperezs90.github.io/gymtemper-web/assets/feature-graphic/play_store_feature_graphic_es.png');
 
   // Navbar
   t('.navbar-cta', 'Descargar gratis');
