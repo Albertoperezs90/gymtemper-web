@@ -12,7 +12,9 @@ let lang = 'en';
 
 async function initLang() {
   // 1. Browser language preference — instant, always fresh
-  const browserLangs = navigator.languages?.length ? navigator.languages : [navigator.language || 'en'];
+  //    Include navigator.language explicitly so it isn't skipped when
+  //    navigator.languages exists but doesn't contain Spanish
+  const browserLangs = [navigator.language, ...(navigator.languages ?? [])].filter(Boolean);
   if (browserLangs.some((l) => l.toLowerCase().startsWith('es'))) {
     lang = 'es';
     return;
