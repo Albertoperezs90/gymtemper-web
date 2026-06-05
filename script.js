@@ -1,7 +1,7 @@
-// Detect locale: Spanish only for 'es' browsers, English for everything else
+// Detect locale: Spanish if *any* of the browser's preferred languages is es-*
 const lang = (() => {
-  const l = (navigator.languages?.[0] || navigator.language || 'en').toLowerCase();
-  return l.startsWith('es') ? 'es' : 'en';
+  const langs = navigator.languages?.length ? navigator.languages : [navigator.language || 'en'];
+  return langs.some((l) => l.toLowerCase().startsWith('es')) ? 'es' : 'en';
 })();
 
 // Theme helpers
