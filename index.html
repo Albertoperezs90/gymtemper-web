@@ -1,8 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Prevent FOUC: apply saved or system theme before first paint -->
+  <script>
+    (function () {
+      var saved = localStorage.getItem('gymtemper-theme');
+      var theme = saved === 'light' || saved === 'dark'
+        ? saved
+        : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
 
   <!-- Primary SEO -->
   <title>GymTemper — Free Offline Workout Tracker for Android | No Account Required</title>
@@ -62,10 +73,10 @@
       "English and Spanish"
     ],
     "screenshot": [
-      "https://albertoperezs90.github.io/gymtemper-web/assets/screenshots/01_home.png",
-      "https://albertoperezs90.github.io/gymtemper-web/assets/screenshots/03_active_workout.png",
-      "https://albertoperezs90.github.io/gymtemper-web/assets/screenshots/04_rest_timer.png",
-      "https://albertoperezs90.github.io/gymtemper-web/assets/screenshots/06_progression.png"
+      "https://albertoperezs90.github.io/gymtemper-web/assets/screenshots/en/dark/01_home.png",
+      "https://albertoperezs90.github.io/gymtemper-web/assets/screenshots/en/dark/03_active_workout.png",
+      "https://albertoperezs90.github.io/gymtemper-web/assets/screenshots/en/dark/04_rest_timer.png",
+      "https://albertoperezs90.github.io/gymtemper-web/assets/screenshots/en/dark/06_progression.png"
     ],
     "image": "https://albertoperezs90.github.io/gymtemper-web/assets/icons/play_store_icon.png",
     "author": {
@@ -93,14 +104,20 @@
         <img src="assets/icons/play_store_icon.png" alt="GymTemper icon" />
         GymTemper
       </a>
-      <a
-        class="navbar-cta"
-        href="https://play.google.com/store/apps/details?id=com.aperezsimon.gymtemper"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Download Free
-      </a>
+      <div class="navbar-right">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle color theme">
+          <i data-lucide="sun" class="icon-sun"></i>
+          <i data-lucide="moon" class="icon-moon"></i>
+        </button>
+        <a
+          class="navbar-cta"
+          href="https://play.google.com/store/apps/details?id=com.aperezsimon.gymtemper"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Download Free
+        </a>
+      </div>
     </div>
   </nav>
 
@@ -140,6 +157,7 @@
 
       <div class="hero-visual">
         <img
+          id="hero-graphic"
           src="assets/feature-graphic/play_store_feature_graphic_en.png"
           alt="GymTemper feature graphic — Train smart. No account. No cloud."
         />
@@ -205,27 +223,27 @@
     <div class="carousel-wrapper">
       <div class="carousel-track">
         <div class="carousel-slide">
-          <img src="assets/screenshots/01_home.png" alt="GymTemper home dashboard" loading="lazy" />
+          <img src="assets/screenshots/en/dark/01_home.png" data-screen="01_home" alt="GymTemper home dashboard" loading="lazy" />
           <p class="carousel-caption">Home Dashboard</p>
         </div>
         <div class="carousel-slide">
-          <img src="assets/screenshots/02_routine_picker.png" alt="Pick a routine" loading="lazy" />
+          <img src="assets/screenshots/en/dark/02_routine_picker.png" data-screen="02_routine_picker" alt="Pick a routine" loading="lazy" />
           <p class="carousel-caption">Pick a Routine</p>
         </div>
         <div class="carousel-slide">
-          <img src="assets/screenshots/03_active_workout.png" alt="Log your sets" loading="lazy" />
+          <img src="assets/screenshots/en/dark/03_active_workout.png" data-screen="03_active_workout" alt="Log your sets" loading="lazy" />
           <p class="carousel-caption">Log Your Sets</p>
         </div>
         <div class="carousel-slide">
-          <img src="assets/screenshots/04_rest_timer.png" alt="Rest timer" loading="lazy" />
+          <img src="assets/screenshots/en/dark/04_rest_timer.png" data-screen="04_rest_timer" alt="Rest timer" loading="lazy" />
           <p class="carousel-caption">Rest Timer</p>
         </div>
         <div class="carousel-slide">
-          <img src="assets/screenshots/05_history.png" alt="Workout history" loading="lazy" />
+          <img src="assets/screenshots/en/dark/05_history.png" data-screen="05_history" alt="Workout history" loading="lazy" />
           <p class="carousel-caption">Workout History</p>
         </div>
         <div class="carousel-slide">
-          <img src="assets/screenshots/06_progression.png" alt="Strength progression chart" loading="lazy" />
+          <img src="assets/screenshots/en/dark/06_progression.png" data-screen="06_progression" alt="Strength progression chart" loading="lazy" />
           <p class="carousel-caption">Strength Progress</p>
         </div>
       </div>
@@ -314,6 +332,20 @@
       </div>
     </div>
   </footer>
+
+  <!-- Lightbox -->
+  <dialog id="lightbox" class="lightbox" aria-label="Screenshot preview">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close preview">
+      <i data-lucide="x"></i>
+    </button>
+    <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous screenshot">
+      <i data-lucide="chevron-left"></i>
+    </button>
+    <img id="lightbox-img" src="" alt="" />
+    <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next screenshot">
+      <i data-lucide="chevron-right"></i>
+    </button>
+  </dialog>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="script.js"></script>
