@@ -4,17 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Prevent FOUC: apply saved or system theme before first paint -->
-  <script>
-    (function () {
-      var saved = localStorage.getItem('gymtemper-theme');
-      var theme = saved === 'light' || saved === 'dark'
-        ? saved
-        : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
-  </script>
-
   <!-- Primary SEO -->
   <title>GymTemper — Free Offline Workout Tracker for Android | No Account Required</title>
   <meta name="description" content="GymTemper is a free Android workout tracker that works 100% offline. Log sets with RIR, auto rest timer, routine templates, and 1RM charts. No account. No cloud. No ads." />
@@ -105,11 +94,7 @@
         GymTemper
       </a>
       <div class="navbar-right">
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle color theme">
-          <i data-lucide="sun" class="icon-sun"></i>
-          <i data-lucide="moon" class="icon-moon"></i>
-        </button>
-        <a
+        <
           class="navbar-cta"
           href="https://play.google.com/store/apps/details?id=com.aperezsimon.gymtemper"
           target="_blank"

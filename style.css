@@ -19,20 +19,6 @@
   --max-width:        1100px;
 }
 
-/* ===== Design tokens — light ===== */
-[data-theme="light"] {
-  --color-bg:         #FDFCFB;
-  --color-surface:    #FBF8F4;
-  --color-surface-2:  #EDE5DC;
-  --color-text:       #1C1814;
-  --color-text-muted: #4F4540;
-  --color-border:     rgba(162, 62, 22, 0.2);
-  --color-navbar-bg:  rgba(253, 252, 251, 0.88);
-  --color-badge-bg:   #1C1814;
-  --color-badge-fg:   #FDFCFB;
-  --color-img-border: rgba(0, 0, 0, 0.07);
-}
-
 /* ===== Reset ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -90,32 +76,6 @@ section { padding-block: var(--spacing-section); }
   align-items: center;
   gap: 0.75rem;
 }
-
-/* ===== Theme toggle ===== */
-.theme-toggle {
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-btn);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
-  flex-shrink: 0;
-}
-.theme-toggle:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-.theme-toggle svg { width: 18px; height: 18px; }
-
-/* sun icon visible in dark mode (click → go light), moon visible in light mode */
-.theme-toggle .icon-moon { display: none; }
-[data-theme="light"] .theme-toggle .icon-sun  { display: none; }
-[data-theme="light"] .theme-toggle .icon-moon { display: block; }
 
 .navbar-cta {
   background: var(--color-accent);
@@ -218,10 +178,7 @@ section { padding-block: var(--spacing-section); }
     opacity: 0.9;
     transition: opacity 0.25s;
   }
-  [data-theme="light"] .hero-visual img {
-    box-shadow: 0 8px 48px rgba(0,0,0,0.15);
-    opacity: 1;
-  }
+
 }
 
 /* ===== Features ===== */
@@ -308,9 +265,6 @@ section { padding-block: var(--spacing-section); }
 .carousel-slide img:hover {
   transform: scale(1.03);
   box-shadow: 0 12px 40px rgba(0,0,0,0.7);
-}
-[data-theme="light"] .carousel-slide img {
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
 }
 .carousel-caption {
   font-size: 0.8rem;

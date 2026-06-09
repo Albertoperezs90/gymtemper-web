@@ -1,25 +1,8 @@
 const lang = (navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
 
-// ===== Theme =====
-function getSavedTheme() {
-  const saved = localStorage.getItem('gymtemper-theme');
-  return saved === 'light' || saved === 'dark' ? saved : null;
-}
-
-let currentTheme = getSavedTheme() ||
-  (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-
-function applyTheme(theme, save = true) {
-  currentTheme = theme;
-  document.documentElement.setAttribute('data-theme', theme);
-  if (save) localStorage.setItem('gymtemper-theme', theme);
-  updateScreenshots();
-}
-
 function updateScreenshots() {
-  const folder = currentTheme === 'light' ? 'light' : 'dark';
   document.querySelectorAll('.carousel-slide img[data-screen]').forEach((img) => {
-    img.src = `assets/screenshots/${lang}/${folder}/${img.dataset.screen}.png`;
+    img.src = `assets/screenshots/${lang}/dark/${img.dataset.screen}.png`;
   });
   const heroGraphic = document.getElementById('hero-graphic');
   if (heroGraphic) heroGraphic.src = `assets/feature-graphic/play_store_feature_graphic_${lang}.png`;
@@ -142,17 +125,8 @@ function translatePage() {
 // ===== Boot =====
 document.addEventListener('DOMContentLoaded', () => {
   translatePage();
-  applyTheme(currentTheme, false);
+  updateScreenshots();
   lucide.createIcons();
-
-  // Theme toggle
-  document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-  });
-
-  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
-    if (!getSavedTheme()) applyTheme(e.matches ? 'light' : 'dark', false);
-  });
 
   // ===== Carousel =====
   const track   = document.querySelector('.carousel-track');
