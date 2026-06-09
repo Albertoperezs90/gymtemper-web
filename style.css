@@ -9,8 +9,6 @@
   --color-text-muted: #9E9991;
   --color-border:     rgba(255, 109, 44, 0.15);
   --color-navbar-bg:  rgba(14, 12, 9, 0.85);
-  --color-badge-bg:   #fff;
-  --color-badge-fg:   #000;
   --color-img-border: rgba(255, 255, 255, 0.06);
 
   --radius-card:      12px;
@@ -142,25 +140,9 @@ section { padding-block: var(--spacing-section); }
 }
 .hero-sub strong { color: var(--color-text); }
 .hero-cta-group { display: flex; flex-direction: column; gap: 0.75rem; }
-.play-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: var(--color-badge-bg);
-  color: var(--color-badge-fg);
-  padding: 0.65rem 1.25rem;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 1rem;
-  width: fit-content;
-  transition: transform 0.15s, box-shadow 0.15s, background-color 0.25s, color 0.25s;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-}
-.play-badge:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
-.play-badge-inner { display: flex; flex-direction: column; line-height: 1.1; }
-.play-badge-inner span:first-child { font-size: 0.65rem; font-weight: 400; letter-spacing: 0.05em; }
-.play-badge-inner span:last-child { font-size: 1.05rem; font-weight: 700; }
-.play-badge svg { width: 28px; height: 28px; flex-shrink: 0; }
+.play-badge-link { display: inline-block; }
+.play-badge-link img { display: block; height: 60px; width: auto; transition: transform 0.15s, opacity 0.15s; }
+.play-badge-link:hover img { transform: translateY(-2px); opacity: 0.9; }
 .hero-micro { font-size: 0.8rem; color: var(--color-text-muted); }
 
 .hero-visual { display: none; }

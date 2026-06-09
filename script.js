@@ -6,6 +6,12 @@ function updateScreenshots() {
   });
   const heroGraphic = document.getElementById('hero-graphic');
   if (heroGraphic) heroGraphic.src = `assets/feature-graphic/play_store_feature_graphic_${lang}.png`;
+  const badgeSrc = `assets/icons/badge_${lang}.png`;
+  const badgeAlt = lang === 'es' ? 'Disponible en Google Play' : 'Get it on Google Play';
+  document.querySelectorAll('#play-badge-hero, #play-badge-cta').forEach((img) => {
+    img.src = badgeSrc;
+    img.alt = badgeAlt;
+  });
 }
 
 // ===== Translations =====
