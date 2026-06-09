@@ -112,8 +112,8 @@ function translatePage() {
     'Véala en <span class="accent">acción</span>', true);
   t('.screenshots-section .section-header p', 'Limpia, enfocada y sin distracciones — por diseño.');
 
-  const captions = ['Panel principal', 'Elige una rutina', 'Registra tus series',
-                    'Temporizador de descanso', 'Historial de entrenos', 'Progresión de fuerza'];
+  const captions = ['Panel principal', 'Tus rutinas', 'Registra tus series',
+                    'Vista dividida', 'Progresión de fuerza', 'Pack inicial', 'Lista de ejercicios'];
   document.querySelectorAll('.carousel-caption').forEach((el, i) => {
     if (captions[i]) el.textContent = captions[i];
   });
