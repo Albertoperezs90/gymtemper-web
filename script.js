@@ -113,7 +113,7 @@ function translatePage() {
   t('.screenshots-section .section-header p', 'Limpia, enfocada y sin distracciones — por diseño.');
 
   const captions = ['Panel principal', 'Tus rutinas', 'Registra tus series',
-                    'Vista dividida', 'Progresión de fuerza', 'Pack inicial', 'Lista de ejercicios'];
+                    'Vista dividida', 'Progresión de fuerza', 'Pack inicial'];
   document.querySelectorAll('.carousel-caption').forEach((el, i) => {
     if (captions[i]) el.textContent = captions[i];
   });
